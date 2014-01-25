@@ -86,7 +86,8 @@
 
     // breaks cross-origin requests with legacy browsers
     if (!o['crossOrigin'] && !headers[requestedWith]) headers[requestedWith] = defaultHeaders['requestedWith']
-    if (!headers[contentType]) headers[contentType] = o['contentType'] || defaultHeaders['contentType']
+    if (!headers[contentType] && !(o['data'] && o['data'].constructor === FormData))
+      headers[contentType] = o['contentType'] || defaultHeaders['contentType']
     for (h in headers)
       headers.hasOwnProperty(h) && 'setRequestHeader' in http && http.setRequestHeader(h, headers[h])
   }
@@ -173,9 +174,9 @@
       , method = (o['method'] || 'GET').toUpperCase()
       , url = typeof o === 'string' ? o : o['url']
       // convert non-string objects to query-string form unless o['processData'] is false
-      , data = (o['processData'] !== false && o['data'] && typeof o['data'] !== 'string')
-        ? reqwest.toQueryString(o['data'])
-        : (o['data'] || null)
+      , processData = o['processData'] !== false && o['data'] &&
+                      typeof o['data'] !== 'string' && o['data'].constructor !== FormData
+      , data = processData ? reqwest.toQueryString(o['data']) : (o['data'] || null)
       , http
       , sendWait = false
 
